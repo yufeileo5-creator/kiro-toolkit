@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "交付前验证",
+  "description": "在写入代码文件后，提醒检查是否有语法错误、类型问题或新增警告。对应原 verification-before-completion 技能。",
+  "version": "1",
+  "when": {
+    "type": "postToolUse",
+    "toolTypes": [
+      "write"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "刚刚写入了代码文件。如果这是一个代码文件（.js/.ts/.html/.css/.py 等），请使用 getDiagnostics 检查是否有语法错误或类型问题。如果不是代码文件则跳过。"
+  }
+}

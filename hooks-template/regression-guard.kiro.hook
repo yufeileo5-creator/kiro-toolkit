@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "回归防卫",
+  "description": "在写入操作前，检查是否涉及核心文件或架构变更，提醒遵守架构分层约束和回归防护。对应原 regression-guard 技能。",
+  "version": "1",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": [
+      "write"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "即将写入文件。请快速检查：1) 这个修改是否可能破坏现有功能？2) 是否遵守了项目的架构分层？3) 如果是删改公共 API 或导出，是否已标注 ⚠️ BREAKING CHANGE？如果一切正常，直接继续执行。"
+  }
+}

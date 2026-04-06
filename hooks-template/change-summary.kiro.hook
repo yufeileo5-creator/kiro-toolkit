@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "变更总结",
+  "description": "在 Agent 执行完成后，提醒生成简要的中文变更总结，记录做了什么、改了哪些文件。对应原 docs-changelog 和 walkthrough 机制。",
+  "version": "1",
+  "when": {
+    "type": "agentStop"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "任务执行完毕。请用中文简要总结本次做了什么变更（2-3 句话即可），不要创建新文件。如果涉及重要功能变更，提醒用户考虑更新 CHANGELOG.md。"
+  }
+}

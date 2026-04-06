@@ -1,0 +1,11 @@
+{
+  "name": "md-to-html-website",
+  "version": "1.0.0",
+  "description": "将教程 Markdown 编译为高颜值静态 HTML 网页的构建工具",
+  "scripts": {
+    "build": "node scripts/build.js"
+  },
+  "dependencies": {
+    "marked": "^15.0.0"
+  }
+}

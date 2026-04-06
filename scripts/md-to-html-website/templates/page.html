@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITLE}}</title>
+
+  <!-- Google Fonts: Inter + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Prism.js: 代码语法高亮 -->
+  <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+
+  <style>
+    /* ============================================
+       🎨 全局设计系统
+       ============================================ */
+    :root {
+      --bg-primary: #0f1117;
+      --bg-secondary: #161822;
+      --bg-card: #1c1f2e;
+      --bg-code: #1e2030;
+      --text-primary: #e4e6ef;
+      --text-secondary: #9ba1b6;
+      --text-muted: #6b7280;
+      --accent-blue: #60a5fa;
+      --accent-green: #34d399;
+      --accent-amber: #fbbf24;
+      --accent-rose: #fb7185;
+      --accent-purple: #a78bfa;
+      --border-subtle: rgba(255,255,255,0.06);
+      --border-card: rgba(255,255,255,0.08);
+      --shadow-card: 0 4px 24px rgba(0,0,0,0.3);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.8;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ============================================
+       📊 阅读进度条
+       ============================================ */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 0%;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+      z-index: 1000;
+      transition: width 0.1s linear;
+    }
+
+    /* ============================================
+       📐 布局：主内容 + 侧边 TOC
+       ============================================ */
+    .page-layout {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      gap: 32px;
+    }
+    .page-wrapper {
+      flex: 1;
+      max-width: 860px;
+      min-width: 0; /* 防止子元素超宽撑破 flex */
+      padding: 48px 0 96px;
+    }
+
+    /* ============================================
+       🚧 Elite Callout & Bridge Card
+       ============================================ */
+    .elite-callout {
+      margin: 32px 0;
+      padding: 24px;
+      border-radius: var(--radius);
+      background: var(--bg-card);
+      border-left: 4px solid var(--accent-blue);
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    .elite-callout p:last-child { margin-bottom: 0; }
+    
+    .callout-bridge {
+      border-left: 0;
+      border: 1px solid rgba(251, 191, 36, 0.4);
+      background: linear-gradient(135deg, rgba(251, 191, 36, 0.08) 0%, rgba(26, 32, 44, 0.8) 100%);
+    }
+    .callout-bridge::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 4px;
+      background: repeating-linear-gradient(
+        45deg,
+        #fbbf24,
+        #fbbf24 10px,
+        #b45309 10px,
+        #b45309 20px
+      );
+    }
+    .callout-bridge strong { color: #fbbf24; }
+
+    /* ============================================
+       🗂️ 目录导航 (TOC)
+       ============================================ */
+    .toc-sidebar {
+      position: sticky;
+      top: 80px;
+      width: 250px;
+      flex-shrink: 0;
+      max-height: calc(100vh - 120px);
+      overflow-y: auto;
+      padding: 16px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-card) transparent;
+    }
+    .toc-sidebar .toc-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .toc-sidebar a {
+      display: block;
+      padding: 5px 0 5px 0;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      border-left: 2px solid transparent;
+      padding-left: 12px;
+      transition: all 0.15s ease;
+      line-height: 1.5;
+    }
+    .toc-sidebar a:hover {
+      color: var(--text-primary);
+      border-left-color: var(--accent-blue);
+    }
+    .toc-sidebar a.active {
+      color: var(--accent-blue);
+      border-left-color: var(--accent-blue);
+      font-weight: 500;
+    }
+    .toc-sidebar a.toc-h3 {
+      padding-left: 24px;
+      font-size: 0.78rem;
+    }
+
+    /* ============================================
+       📝 排版层级
+       ============================================ */
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+    }
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-top: 56px;
+      margin-bottom: 20px;
+      color: var(--text-primary);
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      scroll-margin-top: 24px;
+    }
+    h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-top: 36px;
+      margin-bottom: 14px;
+      color: var(--accent-blue);
+      scroll-margin-top: 24px;
+    }
+    p {
+      margin-bottom: 16px;
+      color: var(--text-secondary);
+    }
+    a { color: var(--accent-blue); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    strong { color: var(--text-primary); font-weight: 600; }
+    em { color: var(--text-secondary); font-style: italic; }
+    hr {
+      border: none;
+      border-top: 1px solid var(--border-subtle);
+      margin: 40px 0;
+    }
+    ul, ol {
+      margin-bottom: 16px;
+      padding-left: 24px;
+      color: var(--text-secondary);
+    }
+    li { margin-bottom: 6px; }
+    li::marker { color: var(--accent-blue); }
+
+    /* ============================================
+       📊 表格
+       ============================================ */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 0.9rem;
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    thead th {
+      background: rgba(96,165,250,0.1);
+      color: var(--accent-blue);
+      font-weight: 600;
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-card);
+    }
+    tbody td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+    /* ============================================
+       💻 代码块（通用） + 复制按钮
+       ============================================ */
+    .code-wrapper {
+      position: relative;
+      margin: 16px 0;
+    }
+    .code-wrapper pre {
+      margin: 0;
+    }
+    pre {
+      background: var(--bg-code) !important;
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin: 16px 0;
+      overflow-x: auto;
+      font-size: 0.88rem;
+      line-height: 1.7;
+    }
+    pre code {
+      font-family: var(--font-mono) !important;
+      background: none !important;
+      padding: 0 !important;
+      border: none !important;
+    }
+    code {
+      font-family: var(--font-mono);
+      background: rgba(96,165,250,0.1);
+      color: var(--accent-blue);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.88em;
+    }
+
+    /* ============================================
+       💎 Elite 开发者专属高阶卡片模块 (Callouts)
+       ============================================ */
+    .elite-callout {
+      margin: 24px 0;
+      padding: 18px 20px;
+      border-radius: var(--radius);
+      border-left: 4px solid var(--accent-blue);
+      background: var(--bg-card);
+      color: var(--text-primary);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .elite-callout::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 100%);
+      pointer-events: none;
+    }
+    .elite-callout p {
+      margin: 0 0 10px 0;
+    }
+    .elite-callout p:last-child {
+      margin-bottom: 0;
+    }
+    .elite-callout > p:first-child strong {
+      display: inline-block;
+      margin-bottom: 8px;
+      font-size: 1.05em;
+    }
+
+    /* 各类型特色主题色 */
+    .callout-history {
+      border-left-color: #8c8c8c;
+      background: rgba(140, 140, 140, 0.08); /* 灰色：历史与沉淀 */
+    }
+    .callout-mental {
+      border-left-color: #a855f7;
+      background: rgba(168, 85, 247, 0.08); /* 超然紫：心智重定向 */
+    }
+    .callout-sandboxing {
+      border-left-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.08); /* 警戒橙：破坏与实验 */
+    }
+    .callout-pro-tip {
+      border-left-color: #0ea5e9;
+      background: rgba(14, 165, 233, 0.08); /* 极客蓝：行业最佳实践 */
+    }
+    .callout-pitfall {
+      border-left-color: #ef4444;
+      background: rgba(239, 68, 68, 0.08); /* 报错红：灾难报错现场 */
+    }
+    .callout-pitfall > p:first-child strong {
+      color: #ef4444;
+    }
+    .callout-mission {
+      border-left-color: #10b981;
+      background: rgba(16, 185, 129, 0.08); /* 任务绿：明确的前置引导 */
+    }
+    .callout-mission > p:first-child strong {
+      color: #10b981;
+      font-size: 1.1em;
+    }
+    .callout-loot {
+      border-left-color: #fbbf24;
+      background: rgba(251, 191, 36, 0.08); /* 战利品金：丰收与能力解锁 */
+    }
+    .callout-loot > p:first-child strong {
+      color: #fbbf24;
+      font-size: 1.15em;
+    }
+
+    /* 复制按钮 */
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border-card);
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      transition: all 0.15s ease;
+      z-index: 10;
+    }
+    .copy-btn:hover {
+      background: rgba(255,255,255,0.12);
+      color: var(--text-primary);
+    }
+    .copy-btn.copied {
+      background: rgba(52,211,153,0.15);
+      color: var(--accent-green);
+      border-color: rgba(52,211,153,0.3);
+    }
+
+    /* ============================================
+       🏃 可运行沙盒代码块 & 实时游乐场
+       ============================================ */
+    .runnable-sandbox {
+      position: relative;
+      border: 1px solid rgba(52,211,153,0.25);
+      border-radius: var(--radius);
+      margin: 20px 0;
+      background: linear-gradient(135deg, rgba(52,211,153,0.03), rgba(96,165,250,0.03));
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .runnable-sandbox .sandbox-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: rgba(52,211,153,0.08);
+      border-bottom: 1px solid rgba(52,211,153,0.15);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--accent-green);
+      font-weight: 500;
+    }
+    .runnable-sandbox .sandbox-title::before {
+      content: '📄 ';
+      font-size: 0.75rem;
+    }
+    .runnable-sandbox .sandbox-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .run-btn, .sandbox-copy-btn, .xray-btn {
+      background: rgba(52,211,153,0.15);
+      border: 1px solid rgba(52,211,153,0.3);
+      color: var(--accent-green);
+      font-size: 0.75rem;
+      padding: 3px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+    .run-btn:hover {
+      background: rgba(52,211,153,0.25);
+      transform: scale(1.03);
+    }
+    .run-btn:active { transform: scale(0.97); }
+    .sandbox-copy-btn {
+      background: rgba(255,255,255,0.06);
+      border-color: var(--border-card);
+      color: var(--text-muted);
+    }
+    .sandbox-copy-btn:hover {
+      background: rgba(255,255,255,0.12);
+      color: var(--text-primary);
+    }
+    .xray-btn {
+      background: rgba(168,85,247,0.15) !important;
+      border-color: rgba(168,85,247,0.3) !important;
+      color: #c084fc !important;
+    }
+    .xray-btn:hover {
+      background: rgba(168,85,247,0.25) !important;
+    }
+
+    /* 游乐场布局 */
+    .playground-layout {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .editor-pane {
+      position: relative;
+      background: var(--bg-code);
+      min-height: 80px;
+    }
+    .code-editor, .code-display {
+      margin: 0 !important;
+      padding: 20px 24px !important;
+      font-size: 0.88rem !important;
+      line-height: 1.7 !important;
+      border: none !important;
+      border-radius: 0 !important;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      font-family: var(--font-mono) !important;
+      white-space: pre !important;
+      overflow-wrap: normal !important;
+      text-align: left !important;
+    }
+    .code-editor {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: transparent !important;
+      color: transparent !important; /* hide raw text */
+      caret-color: var(--text-primary);
+      z-index: 2;
+      resize: none;
+      outline: none;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+    .code-editor::selection {
+      background: rgba(96,165,250,0.3);
+      color: transparent;
+    }
+    .code-display {
+      position: relative;
+      z-index: 1;
+      pointer-events: none;
+      overflow-x: hidden; 
+      overflow-y: hidden;
+    }
+
+    .preview-pane {
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      border-top: 1px solid rgba(52,211,153,0.3);
+    }
+    .preview-header {
+      background: #f1f5f9;
+      color: #475569;
+      padding: 6px 16px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      border-bottom: 1px solid #cbd5e1;
+      display: flex;
+      justify-content: space-between;
+    }
+    .preview-pane iframe {
+      width: 100%;
+      height: 250px;
+      border: none;
+      display: block;
+    }
+
+    .runnable-sandbox pre {
+      margin: 0;
+      border: none;
+      border-radius: 0;
+    }
+
+    /* 控制台输出区 */
+    .console-output {
+      display: none;
+      border-top: 1px solid rgba(52,211,153,0.15);
+      padding: 12px 16px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      line-height: 1.6;
+      background: rgba(0,0,0,0.2);
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .console-output .console-header {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .console-output .log-line {
+      color: var(--text-secondary);
+      padding: 1px 0;
+      word-break: break-all;
+    }
+    .console-output .log-line.error {
+      color: var(--accent-rose);
+    }
+    .console-output.visible { display: block; }
+
+    /* ============================================
+       🧩 Callout 样式
+       ============================================ */
+    blockquote {
+      border-left: 3px solid var(--border-card);
+      padding: 14px 20px;
+      margin: 16px 0;
+      background: var(--bg-card);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      color: var(--text-secondary);
+    }
+    blockquote p { margin-bottom: 0; }
+
+    .analogy-callout {
+      border-left-color: var(--accent-purple);
+      background: rgba(167,139,250,0.06);
+    }
+    .warning-callout {
+      border-left-color: var(--accent-amber);
+      background: rgba(251,191,36,0.06);
+    }
+    .tip-callout {
+      border-left-color: var(--accent-green);
+      background: rgba(52,211,153,0.06);
+    }
+    .scenario-callout {
+      border-left-color: var(--accent-blue);
+      background: rgba(96,165,250,0.06);
+    }
+
+    /* ============================================
+       ❓ 测验卡片 (Quiz Card)
+       ============================================ */
+    .quiz-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 24px 0;
+      box-shadow: var(--shadow-card);
+    }
+    .quiz-card .quiz-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(96,165,250,0.12);
+      color: var(--accent-blue);
+      margin-bottom: 14px;
+    }
+    .quiz-card .quiz-question {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+    .quiz-card .quiz-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      margin: 6px 0;
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+      font-size: 0.95rem;
+      user-select: none;
+    }
+    .quiz-card .quiz-option:hover:not(.correct):not(.wrong) {
+      border-color: var(--accent-blue);
+      background: rgba(96,165,250,0.06);
+      color: var(--text-primary);
+      transform: translateX(4px);
+    }
+    .quiz-card .quiz-option .option-indicator {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid var(--border-card);
+      font-size: 0.78rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    .quiz-card .quiz-option.correct {
+      border-color: var(--accent-green);
+      background: rgba(52,211,153,0.1);
+      color: var(--accent-green);
+      animation: correctPulse 0.4s ease;
+    }
+    .quiz-card .quiz-option.correct .option-indicator {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+      color: #000;
+    }
+    .quiz-card .quiz-option.wrong {
+      border-color: var(--accent-rose);
+      background: rgba(251,113,133,0.08);
+      color: var(--accent-rose);
+      animation: shake 0.35s ease;
+    }
+    .quiz-card .quiz-option.wrong .option-indicator {
+      border-color: var(--accent-rose);
+      color: var(--accent-rose);
+    }
+    .quiz-card .quiz-explanation {
+      display: none;
+      margin-top: 16px;
+      padding: 14px 18px;
+      background: rgba(52,211,153,0.06);
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--accent-green);
+      color: var(--text-secondary);
+      font-size: 0.92rem;
+      animation: fadeInUp 0.3s ease;
+    }
+    .quiz-card .quiz-explanation.visible { display: block; }
+
+    @keyframes correctPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+      100% { transform: scale(1); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================
+       🔧 代码填空卡片 (Fill-Blank)
+       ============================================ */
+    .fill-blank-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin: 20px 0;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+      line-height: 1.8;
+    }
+    .fill-blank-card .blank-slot {
+      display: inline-block;
+      min-width: 100px;
+      border-bottom: 2px dashed var(--accent-amber);
+      color: transparent;
+      background: rgba(251,191,36,0.06);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      padding: 1px 8px;
+      border-radius: 3px;
+      position: relative;
+    }
+    .fill-blank-card .blank-slot::after {
+      content: '👆 点击揭示';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.65rem;
+      color: var(--accent-amber);
+      opacity: 0.7;
+      white-space: nowrap;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+    .fill-blank-card .blank-slot:hover { background: rgba(251,191,36,0.12); }
+    .fill-blank-card .blank-slot.revealed {
+      color: var(--accent-amber);
+      background: rgba(251,191,36,0.1);
+      border-bottom-style: solid;
+    }
+    .fill-blank-card .blank-slot.revealed::after { opacity: 0; }
+
+    /* ============================================
+       📂 折叠答案 (Details/Summary)
+       ============================================ */
+    details {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      margin: 16px 0;
+      overflow: hidden;
+    }
+    summary {
+      padding: 14px 20px;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--accent-amber);
+      background: rgba(251,191,36,0.05);
+      user-select: none;
+      transition: background 0.15s;
+      list-style: none;
+    }
+    summary::before {
+      content: '▶ ';
+      font-size: 0.7rem;
+      transition: transform 0.2s;
+      display: inline-block;
+      margin-right: 6px;
+    }
+    details[open] summary::before { transform: rotate(90deg); }
+    summary::-webkit-details-marker { display: none; }
+    summary:hover { background: rgba(251,191,36,0.1); }
+    details[open] summary { border-bottom: 1px solid var(--border-subtle); }
+    details .details-content { padding: 16px 20px; }
+
+    /* ============================================
+       💡 回忆折叠面板 (Recall Card)
+       ============================================ */
+    details.callout-recall {
+      background: linear-gradient(135deg, rgba(8, 145, 178, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%);
+      border: 1px solid rgba(8, 145, 178, 0.3);
+      border-left: 4px solid #06b6d4;
+    }
+    details.callout-recall summary {
+      color: #22d3ee;
+      background: rgba(8, 145, 178, 0.1);
+    }
+    details.callout-recall summary:hover {
+      background: rgba(8, 145, 178, 0.18);
+    }
+
+    /* ============================================
+       🎨 Mermaid 图表容器
+       ============================================ */
+    .mermaid {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin: 20px 0;
+      text-align: center;
+      overflow-x: auto;
+    }
+
+    /* ============================================
+       ⬆️ 返回顶部按钮
+       ============================================ */
+    .back-to-top {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.25s ease;
+      z-index: 200;
+      box-shadow: var(--shadow-card);
+    }
+    .back-to-top.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .back-to-top:hover {
+      color: var(--accent-blue);
+      border-color: var(--accent-blue);
+      transform: translateY(-2px);
+    }
+
+    /* ============================================
+       🔬 动态执行追踪器 (Tracer)
+       ============================================ */
+    .interactive-tracer {
+      position: relative;
+      border: 1px solid rgba(168, 85, 247, 0.25);
+      border-radius: var(--radius);
+      margin: 24px 0;
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.03), rgba(16, 185, 129, 0.03));
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .tracer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: rgba(168, 85, 247, 0.08);
+      border-bottom: 1px solid rgba(168, 85, 247, 0.15);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #c084fc;
+    }
+    .tracer-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .tr-btn {
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.3);
+      color: #e9d5ff;
+      font-size: 0.75rem;
+      padding: 4px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .tr-btn:hover:not(:disabled) {
+      background: rgba(168, 85, 247, 0.3);
+      transform: scale(1.05);
+    }
+    .tr-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .tr-step-info {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      min-width: 40px;
+      text-align: center;
+    }
+    .tracer-body {
+      display: flex;
+      flex-direction: row;
+      min-height: 150px;
+      align-items: stretch;
+    }
+    .tracer-code-pane {
+      flex: 1.5;
+      border-right: 1px solid rgba(168, 85, 247, 0.15);
+      position: relative;
+    }
+    .tr-pre {
+      margin: 0 !important;
+      border: none !important;
+      border-radius: 0 !important;
+      height: 100%;
+      background: transparent !important;
+      position: relative;
+      /* 重要：必须设置 position relative，以供内部绝对定位高亮条使用 */
+    }
+    .tr-highlight-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1.7em;
+      background: rgba(251, 191, 36, 0.12);
+      border-left: 3px solid #fbbf24;
+      z-index: 10;
+      pointer-events: none;
+      transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    /* 使 Prism 生成的 code 盖在前面？其实默认就可以 */
+    .tr-pre code {
+      position: relative;
+      z-index: 20;
+    }
+    
+    .tracer-inspect-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .tr-panel {
+      padding: 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .tr-memory-panel {
+      border-bottom: 1px dashed rgba(168, 85, 247, 0.2);
+    }
+    .tr-panel-title {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    .tr-memory-content table {
+      margin: 0;
+      background: transparent;
+      border-radius: 0;
+    }
+    .tr-memory-content td {
+      padding: 6px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .tr-memory-content tr:last-child td {
+      border: none;
+    }
+    .tr-note-content {
+      font-size: 0.88rem;
+      color: var(--accent-green);
+      line-height: 1.6;
+    }
+    
+    @media (max-width: 768px) {
+      .tracer-body { flex-direction: column; }
+      .tracer-code-pane { border-right: none; border-bottom: 1px solid rgba(168, 85, 247, 0.15); }
+    }
+
+    /* ============================================
+       🆚 代码对比区 (Code Comparison)
+       ============================================ */
+    .code-comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 24px 0;
+      align-items: start;
+    }
+    .code-comparison pre { 
+      margin: 0; 
+      height: 100%;
+    }
+    /* 在移动端改为上下排列 */
+    @media (max-width: 768px) {
+      .code-comparison { 
+        grid-template-columns: 1fr; 
+        gap: 16px; 
+      }
+    }
+
+    /* ============================================
+       📱 响应式适配
+       ============================================ */
+
+    /* --- 平板（≤1100px）：顶部横向滚动导航 --- */
+    @media (max-width: 1100px) {
+      .toc-sidebar {
+        position: fixed;
+        top: 3px; /* 给进度条留位置 */
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 48px;
+        max-height: none;
+        display: flex;
+        align-items: center;
+        overflow-x: auto;
+        overflow-y: hidden;
+        white-space: nowrap;
+        padding: 0 16px;
+        background: rgba(28, 31, 46, 0.95);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: none;
+        border-bottom: 1px solid var(--border-card);
+        border-radius: 0;
+        z-index: 100;
+        scrollbar-width: none;
+      }
+      .toc-sidebar::-webkit-scrollbar { display: none; }
+      .toc-sidebar .toc-title { display: none; }
+      .toc-sidebar a {
+        display: inline-block;
+        padding: 0 16px;
+        margin: 0;
+        border-left: none;
+        border-bottom: 2px solid transparent;
+        line-height: 48px;
+        font-size: 0.85rem;
+      }
+      .toc-sidebar a.active {
+        border-left-color: transparent;
+        border-bottom-color: var(--accent-blue);
+      }
+      .toc-sidebar a.toc-h3 {
+        display: none; /* 移动端顶部导航只显示二级标题 */
+      }
+      .page-layout {
+        padding-top: 51px; /* 给顶部导航留出空间 */
+      }
+      h2, h3 {
+        scroll-margin-top: 70px; /* 防止选中后被顶部导航遮挡 */
+      }
+    }
+
+    /* --- 小平板 / 大手机横屏（≤768px） --- */
+    @media (max-width: 768px) {
+      .page-wrapper {
+        padding: 32px 20px 80px;
+        max-width: 100%;
+      }
+      h1 { font-size: 1.75rem; }
+      h2 { font-size: 1.3rem; margin-top: 44px; }
+      h3 { font-size: 1.1rem; margin-top: 28px; }
+
+      /* 代码块：缩小字号，确保水平滚动 */
+      pre {
+        padding: 14px 16px;
+        font-size: 0.82rem;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* 表格：外包一层滚动容器（由 JS 动态包裹） */
+      .table-scroll-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 16px -20px;
+        padding: 0 20px;
+      }
+      .table-scroll-wrapper table {
+        min-width: 500px;
+      }
+
+      /* 沙盒标题栏：允许换行 */
+      .runnable-sandbox .sandbox-header {
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      /* 测验选项：触控区域加大 */
+      .quiz-card .quiz-option {
+        padding: 14px 16px;
+        font-size: 0.9rem;
+      }
+      .quiz-card .quiz-option:hover:not(.correct):not(.wrong) {
+        transform: none; /* 手机端取消 hover 位移 */
+      }
+    }
+
+    /* --- 手机竖屏（≤480px） --- */
+    @media (max-width: 480px) {
+      body { font-size: 15px; }
+      .page-wrapper { padding: 20px 14px 72px; }
+      h1 { font-size: 1.45rem; }
+      h2 { font-size: 1.15rem; margin-top: 36px; margin-bottom: 14px; }
+      h3 { font-size: 1rem; }
+
+      /* 代码块进一步缩小 */
+      pre {
+        padding: 12px 12px;
+        font-size: 0.78rem;
+        border-radius: 8px;
+      }
+      code {
+        font-size: 0.82em;
+        padding: 1px 5px;
+      }
+
+      /* 表格 */
+      table { font-size: 0.78rem; }
+      thead th, tbody td { padding: 7px 8px; }
+
+      /* 测验卡片 */
+      .quiz-card { padding: 16px; }
+      .quiz-card .quiz-question { font-size: 0.92rem; }
+      .quiz-card .quiz-option {
+        padding: 12px 12px;
+        font-size: 0.85rem;
+        gap: 8px;
+      }
+      .quiz-card .quiz-option .option-indicator {
+        width: 22px;
+        height: 22px;
+        font-size: 0.72rem;
+      }
+
+      /* 填空卡片 */
+      .fill-blank-card {
+        padding: 14px 16px;
+        font-size: 0.82rem;
+      }
+      .fill-blank-card .blank-slot {
+        min-width: 70px;
+        padding: 2px 6px;
+      }
+      .fill-blank-card .blank-slot::after {
+        font-size: 0.58rem;
+      }
+
+      /* 沙盒 */
+      .runnable-sandbox .sandbox-header {
+        padding: 6px 12px;
+        font-size: 0.72rem;
+      }
+      .run-btn, .sandbox-copy-btn {
+        font-size: 0.7rem;
+        padding: 4px 10px;
+      }
+      .console-output {
+        padding: 10px 12px;
+        font-size: 0.78rem;
+      }
+
+      /* 折叠答案 */
+      summary { padding: 12px 14px; font-size: 0.9rem; }
+      details .details-content { padding: 12px 14px; }
+
+      /* Callout */
+      blockquote { padding: 12px 14px; font-size: 0.9rem; }
+
+      /* Mermaid */
+      .mermaid { padding: 16px 8px; }
+
+      /* 返回顶部按钮：左下角避免遮挡拇指区 */
+      .back-to-top {
+        bottom: 20px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 阅读进度条 -->
+  <div class="progress-bar" id="progressBar"></div>
+
+  <!-- 主内容与侧边栏布局 -->
+  <div class="page-layout">
+    <div class="page-wrapper" id="content">
+      {{CONTENT}}
+    </div>
+
+    <!-- 目录侧边栏（由 JS 动态生成） -->
+    <nav class="toc-sidebar" id="tocSidebar">
+      <div class="toc-title">📑 目录导航</div>
+    </nav>
+  </div>
+
+  <!-- 返回顶部 -->
+  <button class="back-to-top" id="backToTop" title="返回顶部">↑</button>
+
+  <!-- Prism.js: 代码语法高亮 -->
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-typescript.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-css.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markup.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-bash.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-json.min.js"></script>
+
+  <!-- Mermaid.js: 图表渲染 -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        primaryColor: '#1c1f2e',
+        primaryTextColor: '#e4e6ef',
+        primaryBorderColor: '#60a5fa',
+        lineColor: '#60a5fa',
+        secondaryColor: '#161822',
+        tertiaryColor: '#0f1117',
+        fontFamily: 'Inter, system-ui, sans-serif',
+        fontSize: '14px'
+      }
+    });
+  </script>
+
+  <script>
+  (function() {
+    'use strict';
+
+    // ============================================
+    // 📊 阅读进度条
+    // ============================================
+    const progressBar = document.getElementById('progressBar');
+    const backToTop = document.getElementById('backToTop');
+
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      progressBar.style.width = progress + '%';
+
+      // 返回顶部按钮显示/隐藏
+      if (scrollTop > 400) {
+        backToTop.classList.add('visible');
+      } else {
+        backToTop.classList.remove('visible');
+      }
+    });
+
+    backToTop.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // ============================================
+    // 🗂️ 自动生成目录 (TOC)
+    // ============================================
+    const tocSidebar = document.getElementById('tocSidebar');
+    const headings = document.querySelectorAll('#content h2, #content h3');
+
+    headings.forEach((h, i) => {
+      // 给 heading 添加 id 用于锚点
+      if (!h.id) h.id = 'heading-' + i;
+
+      const link = document.createElement('a');
+      link.href = '#' + h.id;
+      link.textContent = h.textContent;
+      link.className = h.tagName === 'H3' ? 'toc-h3' : 'toc-h2';
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        h.scrollIntoView({ behavior: 'smooth' });
+      });
+      tocSidebar.appendChild(link);
+    });
+
+    // TOC 高亮当前阅读位置
+    const tocLinks = tocSidebar.querySelectorAll('a');
+    const observerCallback = (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(l => l.classList.remove('active'));
+          const activeLink = tocSidebar.querySelector(`a[href="#${entry.target.id}"]`);
+          if (activeLink) activeLink.classList.add('active');
+        }
+      });
+    };
+    const observer = new IntersectionObserver(observerCallback, {
+      rootMargin: '-20% 0px -75% 0px'
+    });
+    headings.forEach(h => observer.observe(h));
+
+    // ============================================
+    // 📋 代码块复制按钮
+    // ============================================
+    document.querySelectorAll('.code-wrapper').forEach(wrapper => {
+      const btn = wrapper.querySelector('.copy-btn');
+      const code = wrapper.querySelector('code');
+      if (!btn || !code) return;
+
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(code.textContent).then(() => {
+          btn.textContent = '✓ 已复制';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = '复制';
+            btn.classList.remove('copied');
+          }, 1500);
+        });
+      });
+    });
+
+    // 沙盒内的复制按钮
+    document.querySelectorAll('.sandbox-copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sandbox = btn.closest('.runnable-sandbox');
+        const code = sandbox.querySelector('code');
+        if (!code) return;
+        navigator.clipboard.writeText(code.textContent).then(() => {
+          btn.textContent = '✓ 已复制';
+          setTimeout(() => { btn.textContent = '复制'; }, 1500);
+        });
+      });
+    });
+
+    // ============================================
+    // ▶ 交互沙盒：双核引擎 (JS 控制台 / HTML+CSS 实时画布)
+    // ============================================
+
+    // 独立绑定 Playground 可编辑监听
+    document.querySelectorAll('.runnable-sandbox').forEach(sandbox => {
+      const codeWrapper = sandbox.querySelector('.editor-pane');
+      const lang = sandbox.dataset.lang;
+      
+      // 没有 editor-pane 代表非多功能交互模块
+      if (!codeWrapper) return;
+      
+      const textarea = codeWrapper.querySelector('.code-editor');
+      const codeDisplay = codeWrapper.querySelector('.code-display code');
+      const iframe = sandbox.querySelector('.live-iframe');
+      const isHtmlCss = ['html', 'css', 'style'].includes(lang);
+      
+      // 核心特性：自动调整高亮框架内容
+      if (textarea && codeDisplay) {
+        textarea.addEventListener('input', () => {
+          if (Prism) {
+            codeDisplay.textContent = textarea.value;
+            Prism.highlightElement(codeDisplay);
+          }
+          if (isHtmlCss) refreshIframe();
+        });
+        
+        textarea.addEventListener('scroll', () => {
+          codeWrapper.querySelector('.code-display').scrollLeft = textarea.scrollLeft;
+        });
+        
+        // Tab 键不跳失去焦点，而是支持两行空格
+        textarea.addEventListener('keydown', (e) => {
+          if (e.key === 'Tab') {
+            e.preventDefault();
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            textarea.value = textarea.value.substring(0, start) + "  " + textarea.value.substring(end);
+            textarea.selectionStart = textarea.selectionEnd = start + 2;
+            textarea.dispatchEvent(new Event('input'));
+          }
+        });
+      }
+      
+      // 开启 XRAY
+      let xrayEnabled = false;
+      const xrayBtn = sandbox.querySelector('.xray-btn');
+      if (xrayBtn) {
+        xrayBtn.addEventListener('click', () => {
+          xrayEnabled = !xrayEnabled;
+          xrayBtn.style.background = xrayEnabled ? 'rgba(168,85,247,0.5)' : '';
+          xrayBtn.style.color = xrayEnabled ? '#fff' : '';
+          refreshIframe();
+        });
+      }
+      
+      function refreshIframe() {
+        if (!iframe || !textarea) return;
+        let payload = textarea.value;
+        const outCss = xrayEnabled ? `
+          body { 
+            transform: perspective(1200px) rotateX(15deg) rotateY(-10deg) scale(0.9);
+            transform-style: preserve-3d;
+            background-color: #0f172a !important; 
+            color: #e2e8f0 !important;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
+          }
+          * { 
+            outline: 1px solid rgba(56, 189, 248, 0.6) !important; 
+            background: rgba(14, 165, 233, 0.08) !important; 
+            transform: translateZ(15px); 
+            transform-style: preserve-3d; 
+            transition: all 0.2s ease !important;
+            box-shadow: inset 0 0 10px rgba(56, 189, 248, 0.1) !important;
+          }
+          *:hover { 
+            outline: 2px solid rgba(236, 72, 153, 0.9) !important; 
+            background: rgba(236, 72, 153, 0.25) !important; 
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.5) !important; 
+          }
+          * * { outline-color: rgba(139, 92, 246, 0.5) !important; background: rgba(139, 92, 246, 0.08) !important; }
+          * * * { outline-color: rgba(236, 72, 153, 0.5) !important; background: rgba(236, 72, 153, 0.08) !important; }
+          * * * * { outline-color: rgba(16, 185, 129, 0.5) !important; background: rgba(16, 185, 129, 0.08) !important; }
+        ` : '';
+        const xrayScript = xrayEnabled ? `<script>
+          document.querySelectorAll('body *').forEach(el => {
+            if(el.tagName === 'SCRIPT') return;
+            const tag = el.tagName.toLowerCase();
+            const id = el.id ? '#' + el.id : '';
+            const cls = el.className ? '.' + el.className.split(' ').filter(Boolean).join('.') : '';
+            el.setAttribute('data-xray-tag', '<' + tag + id + cls + '>');
+            if (window.getComputedStyle(el).position === 'static') {
+              el.style.position = 'relative';
+            }
+          });
+        <\/script>` : '';
+
+        const xrayBadgesCss = xrayEnabled ? `
+          body *::before {
+            content: attr(data-xray-tag);
+            position: absolute;
+            top: -10px;
+            left: -1px;
+            background: rgba(236, 72, 153, 0.95);
+            color: #fff;
+            padding: 2px 6px;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+            border-radius: 4px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 99999;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+            white-space: nowrap;
+          }
+          body *:hover::before {
+            opacity: 1;
+            transform: translateY(-8px);
+          }
+        ` : '';
+        
+        if (lang === 'css' || lang === 'style') {
+          payload = `
+            <!DOCTYPE html><html><head>
+            <style>${outCss} \n ${xrayBadgesCss} \n ${payload}</style>
+            </head>
+            <body style="padding: 20px; font-family: -apple-system, sans-serif; color: #333; line-height: 1.6;">
+              <h2 style="font-size:18px; color: #64748b;">🎨 纯 CSS 调试画布示例节点</h2>
+              <hr style="border: 0; border-top: 1px dashed #cbd5e1; margin: 15px 0;">
+              <div>
+                <p>你好，世界！这是一段普通文本段落，下方会测试一些常规表单组件元素：</p>
+                <form action="#" style="margin-top:20px;">
+                  <input type="text" placeholder="我是 input 框">
+                  <button type="button">我是 button</button>
+                </form>
+              </div>
+              ${xrayScript}
+            </body></html>
+          `;
+        } else {
+          // html
+          payload = `<!DOCTYPE html><html><head><style>${outCss} \n ${xrayBadgesCss}</style></head><body style="padding:10px;">${payload} ${xrayScript}</body></html>`;
+        }
+        
+        iframe.srcdoc = payload;
+      }
+      
+      // 初始化如果它含画布就初次刷新
+      if (isHtmlCss) refreshIframe();
+    });
+
+    // 拦截传统控制台按钮
+    document.querySelectorAll('.run-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sandbox = btn.closest('.runnable-sandbox');
+        const code = sandbox.querySelector('code');
+        const outputEl = sandbox.querySelector('.console-output');
+        if (!code || !outputEl) return;
+
+        // 清空之前的输出
+        outputEl.innerHTML = '<div class="console-header">📟 Console Output</div>';
+        outputEl.classList.add('visible');
+
+        // 拦截 console.log 进行消息劫持
+        const logs = [];
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        console.log = (...args) => {
+          logs.push({ type: 'log', text: args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ') });
+          originalLog.apply(console, args);
+        };
+        console.error = (...args) => {
+          logs.push({ type: 'error', text: args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ') });
+          originalError.apply(console, args);
+        };
+        console.warn = (...args) => {
+          logs.push({ type: 'log', text: '⚠️ ' + args.map(a => String(a)).join(' ') });
+          originalWarn.apply(console, args);
+        };
+
+        try {
+          // 用 Function 构造器执行代码（比 eval 安全一点）
+          const fn = new Function(code.textContent);
+          fn();
+        } catch (err) {
+          logs.push({ type: 'error', text: '❌ ' + err.message });
+        }
+
+        // 还原 console
+        console.log = originalLog;
+        console.error = originalError;
+        console.warn = originalWarn;
+
+        // 渲染输出
+        if (logs.length === 0) {
+          outputEl.innerHTML += '<div class="log-line" style="color:var(--text-muted)">(无输出)</div>';
+        } else {
+          logs.forEach(l => {
+            const line = document.createElement('div');
+            line.className = 'log-line' + (l.type === 'error' ? ' error' : '');
+            line.textContent = l.text;
+            outputEl.appendChild(line);
+          });
+        }
+      });
+    });
+
+    // ============================================
+    // ❓ 测验交互
+    // ============================================
+    document.querySelectorAll('.quiz-card').forEach(card => {
+      const correct = card.dataset.correct;
+      const options = card.querySelectorAll('.quiz-option');
+      const explanation = card.querySelector('.quiz-explanation');
+      let answered = false;
+
+      options.forEach(opt => {
+        opt.addEventListener('click', () => {
+          if (answered) return;
+          answered = true;
+          const selected = opt.dataset.value;
+          if (selected === correct) {
+            opt.classList.add('correct');
+          } else {
+            opt.classList.add('wrong');
+            options.forEach(o => {
+              if (o.dataset.value === correct) o.classList.add('correct');
+            });
+          }
+          // 禁用所有 hover
+          options.forEach(o => o.style.cursor = 'default');
+          if (explanation) {
+            setTimeout(() => explanation.classList.add('visible'), 300);
+          }
+        });
+      });
+    });
+
+    // ============================================
+    // 🔧 填空刮刮卡交互
+    // ============================================
+    document.querySelectorAll('.blank-slot').forEach(slot => {
+      slot.addEventListener('click', () => slot.classList.toggle('revealed'));
+    });
+
+    // ============================================
+    // 📱 移动端适配：表格横向滚动包裹
+    // ============================================
+    if (window.innerWidth <= 768) {
+      document.querySelectorAll('#content table').forEach(table => {
+        if (table.parentElement.classList.contains('table-scroll-wrapper')) return;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'table-scroll-wrapper';
+        table.parentNode.insertBefore(wrapper, table);
+        wrapper.appendChild(table);
+      });
+    }
+
+    // ============================================
+    // 🔬 执行追踪器 (Tracer) 交互
+    // ============================================
+    document.querySelectorAll('.interactive-tracer').forEach(tracer => {
+      const dataTrace = tracer.getAttribute('data-trace');
+      if (!dataTrace) return;
+      let steps = [];
+      try {
+        steps = JSON.parse(decodeURIComponent(dataTrace));
+      } catch(e) { console.error('Tracer 解析失败:', e); return; }
+      
+      let currentStep = -1;
+      
+      const prevBtn = tracer.querySelector('.tr-prev');
+      const nextBtn = tracer.querySelector('.tr-next');
+      const resetBtn = tracer.querySelector('.tr-reset');
+      const stepInfo = tracer.querySelector('.tr-step-info');
+      const memoryContent = tracer.querySelector('.tr-memory-content');
+      const noteContent = tracer.querySelector('.tr-note-content');
+      // 高亮条需要在 pre 内，我们在 build.js 中是这么放的，但是可能被 Marked 或 Prism 拦截或破坏
+      // 我们用 js 动态找或者挂载
+      let highlightBar = tracer.querySelector('.tr-highlight-bar');
+      const pre = tracer.querySelector('.tr-pre');
+      
+      // Prism 渲染时可能会重写 code，但一般不碰兄弟级 div，以防万一
+      if (!highlightBar && pre) {
+        highlightBar = document.createElement('div');
+        highlightBar.className = 'tr-highlight-bar';
+        highlightBar.style.display = 'none';
+        pre.insertBefore(highlightBar, pre.firstChild);
+      }
+      
+      const updateUI = () => {
+        stepInfo.textContent = `${currentStep + 1} / ${steps.length}`;
+        prevBtn.disabled = currentStep < 0;
+        nextBtn.disabled = currentStep >= steps.length - 1;
+        
+        if (currentStep < 0) {
+          if (highlightBar) highlightBar.style.display = 'none';
+          memoryContent.innerHTML = '<div style="color:var(--text-muted);font-size:0.85em;">等待点击【步进】开始执行...</div>';
+          noteContent.innerHTML = '点击右上角 <strong>▶ 步进</strong> 开始观察变量内存变化。';
+          return;
+        }
+        
+        const step = steps[currentStep];
+        
+        if (highlightBar && pre) {
+          highlightBar.style.display = 'block';
+          // line-height is 1.7em. paddingTop is 20px.  
+          // 我们设定行偏置为: 20px + (line-1)*1.7em
+          highlightBar.style.top = `calc(20px + ${step.line - 1} * 1.7em)`;
+        }
+        
+        // 渲染内存
+        if (step.mem && Object.keys(step.mem).length > 0) {
+          let tb = '<table style="margin:0; width:100%; font-size:0.85rem;"><tbody>';
+          for (const [k, v] of Object.entries(step.mem)) {
+            let vc = v === 'undefined' ? 'color:var(--text-muted); font-style:italic;' : 'color:var(--accent-green);';
+            tb += `<tr><td style="font-family:var(--font-mono); font-weight:600; vertical-align:top; width:40%;">${k}</td>`;
+            tb += `<td style="font-family:var(--font-mono); ${vc}">${v}</td></tr>`;
+          }
+          tb += '</tbody></table>';
+          memoryContent.innerHTML = tb;
+        } else {
+          memoryContent.innerHTML = '<div style="color:var(--text-muted);">(无任何变量存在)</div>';
+        }
+        
+        noteContent.innerHTML = step.note || '-';
+      };
+      
+      nextBtn.addEventListener('click', () => {
+        if (currentStep < steps.length - 1) {
+          currentStep++;
+          updateUI();
+        }
+      });
+      prevBtn.addEventListener('click', () => {
+        if (currentStep >= 0) {
+          currentStep--;
+          updateUI();
+        }
+      });
+      resetBtn.addEventListener('click', () => {
+        currentStep = -1;
+        updateUI();
+      });
+      
+      // Init
+      updateUI();
+    });
+
+  })();
+  </script>
+  <!-- Mermaid.js 支持 -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+  </script>
+</body>
+</html>
