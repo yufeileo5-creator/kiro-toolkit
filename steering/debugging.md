@@ -1,5 +1,6 @@
 ---
-inclusion: manual
+inclusion: fileMatch
+fileMatchPattern: "**/*.{ts,tsx,js,jsx,py}"
 ---
 
 # 系统化调试流程 (Systematic Debugging)
@@ -54,3 +55,4 @@ inclusion: manual
 - "我不完全理解但这可能有用"
 
 这些都意味着：停下来，回到阶段 1。
+

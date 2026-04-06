@@ -1,5 +1,6 @@
 ---
-inclusion: manual
+inclusion: fileMatch
+fileMatchPattern: "**/*.{ts,tsx,js,jsx,py}"
 ---
 
 # 回归守卫 (Regression Guard)
@@ -74,3 +75,4 @@ inclusion: manual
 - "测试太慢了，先跳过" → 必须跑测试
 - "这个模块没有测试，算了" → 先补测试
 - "构建通过就行了" → 构建通过 ≠ 功能正常
+

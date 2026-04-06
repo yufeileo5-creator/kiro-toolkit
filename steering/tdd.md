@@ -1,5 +1,6 @@
 ---
-inclusion: manual
+inclusion: fileMatch
+fileMatchPattern: "**/*.{test.ts,test.js,spec.ts,spec.js}"
 ---
 
 # TDD 红绿重构铁律 (Test-Driven Development)
@@ -46,3 +47,4 @@ inclusion: manual
 3. 测试证明修复有效并防止回归
 
 永远不要在没有测试的情况下修 bug。
+

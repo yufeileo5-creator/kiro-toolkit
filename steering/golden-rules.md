@@ -1,5 +1,6 @@
 ---
-inclusion: manual
+inclusion: fileMatch
+fileMatchPattern: "**/*.{ts,tsx,js,jsx}"
 ---
 
 # 黄金准则 (Golden Rules)
@@ -75,3 +76,4 @@ Agent 犯同样错误 2 次以上时：
 1. 分析根因
 2. 编码为新的黄金准则条目（附带来源追溯）
 3. 追加到本文件对应章节
+

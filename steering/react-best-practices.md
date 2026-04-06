@@ -1,5 +1,6 @@
 ---
-inclusion: manual
+inclusion: fileMatch
+fileMatchPattern: "**/*.{tsx,jsx}"
 ---
 
 # React 性能优化指南 (React Best Practices)
@@ -64,3 +65,4 @@ inclusion: manual
 - 事件处理器存储在 refs 中
 - 应用级初始化只执行一次
 - useLatest 获得稳定回调引用
+

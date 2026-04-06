@@ -1,5 +1,6 @@
 ---
-inclusion: manual
+inclusion: fileMatch
+fileMatchPattern: "**/plugins/**/*.{ts,tsx}"
 ---
 
 # 插件开发规范 (Plugin Dev)
@@ -36,3 +37,4 @@ src/plugins/{plugin-id}/
 - ❌ 禁止全局裸 CSS
 - ❌ 严禁跨域操作状态
 - ❌ 禁止在 core/ 目录下添加业务功能代码
+
