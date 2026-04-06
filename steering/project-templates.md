@@ -54,3 +54,24 @@ Types -> Config -> Core -> Plugin -> UI
 - 任务拆解到单一组件级别（不超过 3 个文件修改）
 - 交付前反写完成状态到切片文件
 - 接手新 Feature 时先加载 docs/adr/ 决策记录
+
+
+## 渐进式规则路由（任务类型 → 技能映射）
+
+| 任务类型 | 必须优先加载的规则 | 按需引用的技能 |
+|---------|-----------------|--------------|
+| 🆕 新功能开发 | agent-rules §2 架构守护 + §3 TDD | `#plan-workflow`、`#plugin-dev`、`#slice-execution` |
+| 🐛 Bug 修复 | agent-rules §6 调试 + §7 验证 | `#debugging`、`#log-compressor`、`#regression-guard` |
+| 🔧 重构 | agent-rules §2 + §3 + §7 | `#regression-guard`、`#performance-auditor`、`#code-review` |
+| 🎨 前端 UI | agent-rules §4 前端标准 | `#ui-standards`、`#react-best-practices`、`#frontend-dev` |
+| 📝 文档更新 | agent-rules §8 文档工程 | `#docs-engineering`、`#doc-sync-check` |
+| 🧹 维护巡检 | agent-rules §7 + §8 | `#harness-gc`、`#dead-code-sweeper`、`#agent-eval` |
+| 🔄 上下文交接 | agent-rules §9 窗口守护 | `#handoff-workflow` |
+| 📋 切片执行 | agent-rules §2 + §6 | `#slice-execution`、`#plan-workflow`、`#version-workflow` |
+
+### 始终生效（不可跳过）
+1. 强制中文
+2. 禁止占位符
+3. Steering 优先——进入项目先读项目级 steering
+4. 分层约束——严禁反向依赖
+5. 验证后交付——证据优先于断言
